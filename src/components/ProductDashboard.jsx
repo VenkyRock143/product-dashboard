@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import ProductList from './productList';
 import ProductModal from './ProductModal';
@@ -70,9 +69,25 @@ const ProductDashboard = () => {
       return matchesSearchTerm && matchesPriceFilter && matchesPopularityFilter;
     });
 
-    setFilteredProducts(filtered); // Update filtered products based on search and filters
+    // Sort products based on the selected sort type
+    const sorted = filtered.sort((a, b) => {
+      switch (sortType) {
+        case 'price-asc':
+          return a.price - b.price;
+        case 'price-desc':
+          return b.price - a.price;
+        case 'popularity-asc':
+          return a.popularity - b.popularity;
+        case 'popularity-desc':
+          return b.popularity - a.popularity;
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredProducts(sorted); // Update filtered and sorted products
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, priceFilter, popularityFilter, products]);
+  }, [searchTerm, priceFilter, popularityFilter, products, sortType]);
 
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);

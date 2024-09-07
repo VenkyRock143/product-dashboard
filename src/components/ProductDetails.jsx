@@ -2,18 +2,37 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const ProductDetails = () => {
-  const { productId } = useParams();
+  const { productId } = useParams(); // Ensure productId is being extracted correctly
   const [product, setProduct] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const response = await fetch('https://cdn.drcode.ai/interview-materials/products.json');
-      const products = await response.json();
-      const foundProduct = products.find(p => p.id === parseInt(productId));
-      setProduct(foundProduct);
+      try {
+        const response = await fetch('https://cdn.drcode.ai/interview-materials/products.json');
+        const data = await response.json();
+
+        // The products are within the `products` object, so we need to adjust the search
+        const productsArray = Object.values(data.products); // Access products array
+        const foundProduct = productsArray.find(p => p.id === parseInt(productId)); // Match product by id
+
+        if (!foundProduct) {
+          throw new Error('Product not found');
+        }
+        setProduct(foundProduct);
+      } catch (err) {
+        setError(`Failed to fetch product details: ${err.message}`);
+      }
     };
-    fetchProduct();
+
+    if (productId) {
+      fetchProduct();
+    }
   }, [productId]);
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   if (!product) {
     return <div>Loading...</div>;
