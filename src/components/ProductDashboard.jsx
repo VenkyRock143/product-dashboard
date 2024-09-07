@@ -4,6 +4,7 @@ import ProductModal from './ProductModal';
 
 const ProductDashboard = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [priceFilter, setPriceFilter] = useState([0, Infinity]);
@@ -14,14 +15,14 @@ const ProductDashboard = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState(null);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Add loading state
 
-  // Proxy URL for resolving CORS issues
   const proxyUrl = 'https://api.allorigins.win/get?url=';
   const targetUrl = 'https://cdn.drcode.ai/interview-materials/products.json';
 
   const fetchProducts = async () => {
     try {
+      setLoading(true); // Set loading to true when fetching starts
       const response = await fetch(proxyUrl + targetUrl);
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -36,13 +37,15 @@ const ProductDashboard = () => {
 
       if (Array.isArray(productsArray)) {
         setProducts(productsArray);
-        setFilteredProducts(productsArray); // Initialize filtered products
+        setFilteredProducts(productsArray);
         setError(null);
       } else {
         throw new Error('Data fetched is not in the expected format');
       }
     } catch (error) {
       setError(`Failed to fetch products: ${error.message}`);
+    } finally {
+      setLoading(false); // Set loading to false when fetching is done
     }
   };
 
@@ -85,7 +88,7 @@ const ProductDashboard = () => {
       }
     });
 
-    setFilteredProducts(sorted); // Update filtered and sorted products
+    setFilteredProducts(sorted);
     setCurrentPage(1); // Reset to first page when filters change
   }, [searchTerm, priceFilter, popularityFilter, products, sortType]);
 
@@ -128,8 +131,20 @@ const ProductDashboard = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Return loading spinner if data is still loading
+  if (loading) {
+    return (
+      <div className="loading-spinner">
+        <p>Loading products...</p>
+        {/* Add your preferred spinner or loading animation here */}
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  // Return error if there is one
   if (error) {
-    return <div>{error}</div>; // Display error message
+    return <div>{error}</div>;
   }
 
   return (
